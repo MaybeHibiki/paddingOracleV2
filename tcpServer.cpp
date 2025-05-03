@@ -44,13 +44,8 @@ int availableSlots[N];
 //Declare socket file descriptor.
 int sockfd;
 
-//this can be set to a fix size later representing the size of the ciphertext 
-//int BUFSIZE = 1024;
-
 //Declare server address to which to bind for receiving messages and client address to fill in sending address
 struct sockaddr_in clienAddr;
-
-
 
 
 
@@ -77,24 +72,14 @@ int paddingCheck(unsigned char* ciphertext){
     // Decrypt the ciphertext (padding is removed by the filter)
     StringSource(ciphertext, true, 
         new StreamTransformationFilter(decryptor,
-            new StringSink(decrypted)
+            new StringSink(decrypted),
+            StreamTransformationFilter::NO_PADDING
         ) 
     ); 
-
-
-    /*
-    // assume ciphertext length is exactly BUFSIZE and a multiple of 16
-    
-    // copy raw bytes into a SecByteBlock
-    SecByteBlock ctext(reinterpret_cast<const byte*>(ciphertext), len);
-    SecByteBlock plain(len);
-    // set up CBC‐AES decryption (no padding adjustment)
-    CBC_Mode< AES >::Decryption dec;
-    dec.SetKeyWithIV(AES_KEY, sizeof(AES_KEY), AES_IV);
-    dec.ProcessData(plain, ctext, len);
-    */
+    std::cout<< "Expected plaintext here:" <<std::endl;
 
     std::cout<< '\n' <<decrypted;
+    std::cout<< "End of plaintext:" <<std::endl;
 
     //pkcs7 padding check:
     //extract padding len from last block
@@ -128,24 +113,20 @@ void* connectionHandler(void* args){
 
    while (check != 1){
         //read the modified ciphertext into the buffer
-        //int k = read(sockAdd,ciphertext,48);
-        size_t total = 0;
-        while (total < CIPHER_LEN) {
-        ssize_t k = read(sockAdd, ciphertext + total, CIPHER_LEN - total);
+        int k = read(sockAdd,ciphertext,CIPHER_LEN);
         if(k<0){
             printf("Error reading from client\n");
-            break;  // Exit the loop and close the connectio
+            break;  // exit the loop and close the connectio
         }else if (k == 0) {
             // Client has disconnected
             printf("Client at thread %d disconnected.\n", sock->index);
-            break;  // Exit the loop and close the connection
+            break;  // exit the loop and close the connection
         }
-        total += k;
-        }
-        //printf("Ciphertext from client: %s\n" , print_hex ( ciphertext) );
+
         std::cout<<"Ciphertext from client:";
         print_hex (ciphertext, CIPHER_LEN);
         std::cout<<'\n';
+        
         //perform padding check. 
         check = paddingCheck(ciphertext);
 

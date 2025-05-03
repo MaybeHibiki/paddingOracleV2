@@ -17,7 +17,7 @@
 //this can be set to a fix size later representing the size of the ciphertext 
 #define BUFSIZE 60
 
-//Server info
+//server info
 #define SERVERPORT 12001
 char* IP = "127.0.0.1";
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
       return 1;
    }
 
-    //Connect to the server
+    //connect to the server
     connect(sockfd,(const struct sockaddr*)&sockAddr, sizeof(sockAddr));
 
     unsigned char ciphertext[] = {
@@ -54,28 +54,6 @@ int main(int argc, char *argv[]){
         0xCB,0x08,0x7A,0xC2,0xD6,0x59,0x3B,0x18
     };
     size_t len = sizeof(ciphertext);
-
-    //sample code of sending stuff in a loop
-    /*char buf[2];
-    for(int i = 0; i<10;i++){
-        //the only line of code that we need the c++ for
-        //or actually it would be beneficial that client code are in c++ since this will be offered to students later.
-        //and having access to c++ library would be a lot convenient
-        std::string str = std::__cxx11::to_string(i) + '\n';
-        write(sockfd,(void*)str.c_str(),2);
-        int k;
-        k = read(sockfd,buf,2);
-        if(k<0){
-            printf("Error reading from server\n");
-            break;  
-        }else if (k == 0) {
-            printf("Server disconnected.\n");
-            break;  
-        }
-
-        printf("From server: %s\n",buf);
-        
-    }*/
 
     // send ciphertext to server
     if (write(sockfd, ciphertext, len) != (ssize_t)len) {
@@ -93,11 +71,10 @@ int main(int argc, char *argv[]){
         printf("Server closed connection\n");
     } else {
         buf[n] = '\0';
-        // Print result: should be "1\n" (valid padding) or "0\n" (invalid)
         printf("Oracle response: %s", buf);
     }
 
-    //Close connection
+    //close connection
 
     while(1);
     close(sockfd);
