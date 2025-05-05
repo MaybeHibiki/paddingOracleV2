@@ -19,7 +19,7 @@ static const size_t CIPHER_LEN = 48;
 
 
 //function for debug purpose:
-void print_hex(const unsigned char* buf, size_t len) {
+void print_hex(const char* buf, size_t len) {
     for (size_t i = 0; i < len; ++i)
         printf("%02X", buf[i]);
     printf("\n");
@@ -51,7 +51,7 @@ struct sockaddr_in clienAddr;
 
 //function that do the padding check from a ciphertext
 //return 1 if the padding is valid and 0 otherwise
-int paddingCheck(unsigned char* ciphertext){
+int paddingCheck(char* ciphertext){
     using namespace CryptoPP;
     std::cout<<std::endl;
     print_hex(ciphertext,CIPHER_LEN);
@@ -76,21 +76,29 @@ int paddingCheck(unsigned char* ciphertext){
             StreamTransformationFilter::NO_PADDING
         ) 
     ); 
-    std::cout<< "Expected plaintext here:" <<std::endl;
 
-    std::cout<< '\n' <<decrypted;
+    std::cout<< "Expected plaintext here:" <<std::endl;
+    std::cout<< '\n' <<decrypted <<'\n';
     std::cout<< "End of plaintext:" <<std::endl;
+
+    std::string decryptedHex;
+    StringSource(decrypted, true, 
+        new HexEncoder(
+            new StringSink(decryptedHex)   
+        ) // HexEncoder
+    ); // StringSource
 
     //pkcs7 padding check:
     //extract padding len from last block
 
+    unsigned char* plaintext = ((unsigned char*)decryptedHex.c_str() );
     
-    byte padLen = decrypted[16 - 1];
-    //perform checks
-    if (padLen < 1 || padLen > AES::BLOCKSIZE)
-        return 0;
-    for (size_t i = 0; i < padLen; ++i) {
-        if (decrypted[16 - 1 - i] != padLen)
+    unsigned char padLen = plaintext[96-1];
+    int padLenNum = (int)padLen - '0';
+    std::cout<<"pad len in int: "<<padLenNum<<std::endl;
+
+    for (size_t i = 0; i < padLenNum; ++i) {
+        if (plaintext[96 - 1 - 2*i] -'0' != padLenNum)
             return 0;
     }
     return 1;
@@ -101,7 +109,7 @@ int paddingCheck(unsigned char* ciphertext){
 void* connectionHandler(void* args){
     struct thread_args* sock = (thread_args*)args;
     //buffer for modified ciphertext 
-    unsigned char ciphertext[CIPHER_LEN];
+    char ciphertext[CIPHER_LEN];
     
    //get the connection descriptor
    int sockAdd = sock->confd;
@@ -127,7 +135,8 @@ void* connectionHandler(void* args){
         print_hex (ciphertext, CIPHER_LEN);
         std::cout<<'\n';
         
-        //perform padding check. 
+        //perform padding check.
+        
         check = paddingCheck(ciphertext);
 
         if(check == 1)

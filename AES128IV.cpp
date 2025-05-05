@@ -14,9 +14,7 @@ bool checkPadding(unsigned char* plaintext){
     std::cout<<plaintext<<" in int: "<<padLenNum<<std::endl;
 
     std::cout<<padLen<<std::endl;
-    //perform checks
-    //if (padLenNum < 1 || padLenNum > AES::BLOCKSIZE)
-      //  return 0;
+
     for (size_t i = 0; i < padLenNum; ++i) {
         if (plaintext[96 - 1 - 2*i] -'0' != padLenNum)
             return 0;
