@@ -119,9 +119,11 @@ void* connectionHandler(void* args){
     int check = 0;
 
 
-   while (check != 1){
-        //read the modified ciphertext into the buffer
-        int k = read(sockAdd,ciphertext,CIPHER_LEN);
+   while (true){
+
+        //read the modified ciphertext into the buffer 
+        //fix size with 2 blocks (C_previous, C_current)
+        int k = read(sockAdd,&c,1);
         if(k<0){
             printf("Error reading from client\n");
             break;  // exit the loop and close the connectio
@@ -130,7 +132,7 @@ void* connectionHandler(void* args){
             printf("Client at thread %d disconnected.\n", sock->index);
             break;  // exit the loop and close the connection
         }
-
+ 
         std::cout<<"Ciphertext from client:";
         print_hex (ciphertext, CIPHER_LEN);
         std::cout<<'\n';
